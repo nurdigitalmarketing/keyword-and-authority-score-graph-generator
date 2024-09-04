@@ -77,10 +77,12 @@ if uploaded_file is not None:
         plt.plot(df_clean.index, df_clean[column], label=column, color=colors[column], 
                  linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6)
 
-        # Annotazioni con la variazione percentuale
+        # Annotazioni con la variazione percentuale (con maggiore visibilità)
         for i in range(1, len(df_clean)):
+            # Modifica la dimensione del font, aggiungi uno sfondo e un bordo per maggiore leggibilità
             plt.text(df_clean.index[i], df_clean[column].iloc[i], f"{percentage_change[column].iloc[i]:.1f}%", 
-                     fontsize=10, ha='center', va='bottom', color=colors[column])
+                     fontsize=12, ha='center', va='bottom', color=colors[column],
+                     bbox=dict(facecolor='white', edgecolor=colors[column], boxstyle='round,pad=0.3'))
 
     # Personalizzazione dell'asse X
     plt.xlabel('Quarter', fontsize=14)
