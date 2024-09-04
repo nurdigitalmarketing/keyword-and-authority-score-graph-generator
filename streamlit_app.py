@@ -59,15 +59,14 @@ if uploaded_file is not None:
     # Calcolo della variazione percentuale
     percentage_change = df_clean.pct_change() * 100
 
-    # Creazione del grafico con Matplotlib
-    plt.figure(figsize=(18, 8))
-
-    # Impostazione del titolo e range dell'asse Y in base alla selezione della metrica
+    # Definizione delle dimensioni del grafico in base alla metrica selezionata
     if metrica == "Authority Score":
+        plt.figure(figsize=(18, 8))  # Dimensione normale per Authority Score
         plt.title("Andamento dell'Authority Score", fontsize=16)
         plt.ylim(0, 100)  # L'Authority Score è tipicamente tra 0 e 100
         plt.ylabel('Authority Score', fontsize=14)
     else:
+        plt.figure(figsize=(14, 6))  # Riduce la larghezza e l'altezza per le Keyword
         plt.title("Andamento del Numero di Keyword Posizionate", fontsize=16)
         plt.ylim(0, df_clean.max().max() * 1.1)  # Imposta un limite superiore dinamico per le keyword
         plt.ylabel('Numero di Keyword Posizionate', fontsize=14)
