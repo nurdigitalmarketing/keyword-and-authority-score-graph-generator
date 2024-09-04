@@ -69,13 +69,14 @@ if uploaded_file is not None:
         plt.ylabel('Authority Score', fontsize=14)
     else:
         plt.title("Andamento del Numero di Keyword Posizionate", fontsize=16)
-        plt.ylim(0, None)  # Le keyword possono andare da 0 a illimitato
+        plt.ylim(0, df_clean.max().max() * 1.1)  # Imposta un limite superiore dinamico per le keyword
         plt.ylabel('Numero di Keyword Posizionate', fontsize=14)
 
-    # Plot delle linee per ciascuna azienda
+    # Plot delle linee per ciascuna azienda con i pallini sui punti
     for column in df_clean.columns:
         plt.plot(df_clean.index, df_clean[column], label=column, color=colors[column], 
-                 linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6)
+                 linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6,
+                 marker='o', markersize=8)  # Aggiungi marker per i pallini
 
         # Annotazioni con la variazione percentuale (con maggiore visibilità)
         for i in range(1, len(df_clean)):
