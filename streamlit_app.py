@@ -22,25 +22,39 @@ if uploaded_file is not None:
     df = load_data(uploaded_file)
     
     st.write("Dati caricati:")
-    st.write(df.head())  # Mostra i primi dati caricati
     
+    # Mostra l'editor interattivo del DataFrame per modifiche dinamiche
+    df = st.experimental_data_editor(df)
+
     # Dropdown per selezionare il cliente e i competitor dalle colonne del CSV
     cliente = st.selectbox("Seleziona il cliente", df.columns[1:], index=0)
-    competitor_1 = st.selectbox("Seleziona il primo competitor", df.columns[1:])
-    competitor_2 = st.selectbox("Seleziona il secondo competitor", df.columns[1:])
-    competitor_3 = st.selectbox("Seleziona il terzo competitor", df.columns[1:])
+    
+    # Selezione dei competitor con checkbox per includere o escludere
+    st.write("Seleziona i competitor da includere:")
+    competitor_1 = st.checkbox("Competitor 1: " + df.columns[2], value=True)
+    competitor_2 = st.checkbox("Competitor 2: " + df.columns[3], value=True)
+    competitor_3 = st.checkbox("Competitor 3: " + df.columns[4], value=True)
+    
+    # Prepara la lista dei competitor selezionati
+    selected_competitors = []
+    if competitor_1:
+        selected_competitors.append(df.columns[2])
+    if competitor_2:
+        selected_competitors.append(df.columns[3])
+    if competitor_3:
+        selected_competitors.append(df.columns[4])
 
     # Definisci i colori
     colors = {
         cliente: '#2BB3FF',
-        competitor_1: '#59DDAA',
-        competitor_2: '#FF8D43',
-        competitor_3: '#AB6CFE'
+        df.columns[2]: '#59DDAA',
+        df.columns[3]: '#FF8D43',
+        df.columns[4]: '#AB6CFE'
     }
 
-    # Prepara i dati per il grafico
+    # Prepara i dati per il grafico, includendo solo il cliente e i competitor selezionati
     df.set_index(df.columns[0], inplace=True)
-    df_clean = df[[cliente, competitor_1, competitor_2, competitor_3]].dropna()
+    df_clean = df[[cliente] + selected_competitors].dropna()
 
     # Calcolo della variazione percentuale
     percentage_change = df_clean.pct_change() * 100
