@@ -31,9 +31,9 @@ if uploaded_file is not None:
     
     # Selezione dei competitor con checkbox per includere o escludere
     st.write("Seleziona i competitor da includere:")
-    competitor_1 = st.checkbox("Competitor 1: " + df.columns[2], value=True)
-    competitor_2 = st.checkbox("Competitor 2: " + df.columns[3], value=True)
-    competitor_3 = st.checkbox("Competitor 3: " + df.columns[4], value=True)
+    competitor_1 = st.checkbox(df.columns[2], value=True)
+    competitor_2 = st.checkbox(df.columns[3], value=True)
+    competitor_3 = st.checkbox(df.columns[4], value=True)
     
     # Prepara la lista dei competitor selezionati
     selected_competitors = []
