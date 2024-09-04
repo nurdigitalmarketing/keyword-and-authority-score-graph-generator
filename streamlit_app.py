@@ -9,7 +9,10 @@ def load_data(uploaded_file):
     return df
 
 # Titolo dell'app
-st.title("Analisi dell'Authority Score - Cliente e Competitor")
+st.title("Analisi dell'Authority Score o delle Keyword Posizionate")
+
+# Selettore tra "Authority Score" e "Keyword"
+metrica = st.selectbox("Seleziona la metrica", ["Authority Score", "Keyword Posizionate"])
 
 # Carica il file CSV
 uploaded_file = st.file_uploader("Carica il file CSV con i dati", type=["csv"])
@@ -21,10 +24,8 @@ if uploaded_file is not None:
     st.write("Dati caricati:")
     st.write(df.head())  # Mostra i primi dati caricati
     
-    # Dropdown per selezionare il cliente
+    # Dropdown per selezionare il cliente e i competitor dalle colonne del CSV
     cliente = st.selectbox("Seleziona il cliente", df.columns[1:], index=0)
-
-    # Selezione dei competitor (fino a 3 competitor)
     competitor_1 = st.selectbox("Seleziona il primo competitor", df.columns[1:])
     competitor_2 = st.selectbox("Seleziona il secondo competitor", df.columns[1:])
     competitor_3 = st.selectbox("Seleziona il terzo competitor", df.columns[1:])
@@ -47,6 +48,16 @@ if uploaded_file is not None:
     # Creazione del grafico con Matplotlib
     plt.figure(figsize=(18, 8))
 
+    # Impostazione del titolo e range dell'asse Y in base alla selezione della metrica
+    if metrica == "Authority Score":
+        plt.title("Andamento dell'Authority Score", fontsize=16)
+        plt.ylim(0, 100)  # L'Authority Score è tipicamente tra 0 e 100
+        plt.ylabel('Authority Score', fontsize=14)
+    else:
+        plt.title("Andamento del Numero di Keyword Posizionate", fontsize=16)
+        plt.ylim(0, None)  # Le keyword possono andare da 0 a illimitato
+        plt.ylabel('Numero di Keyword Posizionate', fontsize=14)
+
     # Plot delle linee per ciascuna azienda
     for column in df_clean.columns:
         plt.plot(df_clean.index, df_clean[column], label=column, color=colors[column], 
@@ -57,10 +68,8 @@ if uploaded_file is not None:
             plt.text(df_clean.index[i], df_clean[column].iloc[i], f"{percentage_change[column].iloc[i]:.1f}%", 
                      fontsize=10, ha='center', va='bottom', color=colors[column])
 
-    # Personalizzazione del grafico
-    plt.title("Andamento dell'Authority Score", fontsize=16)
+    # Personalizzazione dell'asse X
     plt.xlabel('Quarter', fontsize=14)
-    plt.ylabel('Authority Score', fontsize=14)
     plt.legend(loc='best')
     plt.grid(True)
     plt.xticks(rotation=45)
