@@ -24,7 +24,7 @@ if uploaded_file is not None:
     st.write("Dati caricati:")
     
     # Mostra l'editor interattivo del DataFrame per modifiche dinamiche
-    df = st.experimental_data_editor(df)
+    df = st.data_editor(df)
 
     # Dropdown per selezionare il cliente e i competitor dalle colonne del CSV
     cliente = st.selectbox("Seleziona il cliente", df.columns[1:], index=0)
