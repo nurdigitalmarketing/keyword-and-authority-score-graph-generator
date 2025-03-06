@@ -61,29 +61,30 @@ if uploaded_file is not None:
     
     # Definizione delle dimensioni del grafico in base alla metrica selezionata
     if metrica == "Authority Score":
-        plt.figure(figsize=(18, 8))  # Dimensione normale per Authority Score
-        plt.title("Andamento dell'Authority Score", fontsize=16)
+        plt.figure(figsize=(22, 10))  # Dimensione aumentata per Authority Score
+        plt.title("Andamento dell'Authority Score", fontsize=18)
         plt.ylim(0, 100)  # L'Authority Score è tipicamente tra 0 e 100
-        plt.ylabel('Authority Score', fontsize=14)
+        plt.ylabel('Authority Score', fontsize=16)
     else:
-        plt.figure(figsize=(12, 8))  # Riduce la larghezza e l'altezza per le Keyword
-        plt.title("Andamento del Numero di Keyword Posizionate", fontsize=16)
+        plt.figure(figsize=(22, 10))  # Dimensione aumentata per le Keyword
+        plt.title("Andamento del Numero di Keyword Posizionate", fontsize=18)
         plt.ylim(0, df_clean.max().max() * 1.1)  # Imposta un limite superiore dinamico per le keyword
-        plt.ylabel('Numero di Keyword Posizionate', fontsize=14)
+        plt.ylabel('Numero di Keyword Posizionate', fontsize=16)
     
     # Definiamo un dizionario per tenere traccia delle posizioni y utilizzate per ogni x
     used_positions = {}
-        
-    # Plot delle linee per ciascuna azienda con i pallini sui punti
+    
+    # Primo passaggio: plot delle linee principali
     for column in df_clean.columns:
         plt.plot(df_clean.index, df_clean[column], label=column, color=colors[column], 
-                 linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6,
-                 marker='o', markersize=8)  # Aggiungi marker per i pallini
-        
+                linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.8,
+                marker='o', markersize=10)  # Pallini più grandi
+    
+    # Secondo passaggio: aggiungiamo le etichette con le percentuali
+    for column in df_clean.columns:
         # Calcoliamo l'offset iniziale in base al valore massimo dei dati
-        # per determinare la dimensione degli spostamenti verticali
         y_range = plt.ylim()[1] - plt.ylim()[0]
-        offset_increment = y_range * 0.05  # 5% dell'intervallo dell'asse y
+        offset_increment = y_range * 0.07  # 7% dell'intervallo dell'asse y
         
         for i in range(1, len(df_clean)):
             point_x = df_clean.index[i]
@@ -95,12 +96,13 @@ if uploaded_file is not None:
                 used_positions[point_x] = []
             
             # Calcola una posizione y che non si sovrappone
-            label_y = point_y
+            # Cominciamo più in alto del punto originale per dare spazio
+            label_y = point_y + offset_increment * 0.8
             
             # Verifica se ci sono posizioni vicine già utilizzate
             too_close = True
             attempts = 0
-            max_attempts = 10  # Limitiamo il numero di tentativi per evitare loop infiniti
+            max_attempts = 20  # Aumentato il numero di tentativi
             
             while too_close and attempts < max_attempts:
                 too_close = False
@@ -110,40 +112,57 @@ if uploaded_file is not None:
                         break
                 
                 if too_close:
-                    # Alterniamo tra spostamenti verso l'alto e verso il basso
-                    if attempts % 2 == 0:
-                        label_y += offset_increment
+                    # Strategia modificata: prima proviamo a spostare su, poi giù se necessario
+                    if attempts < 10:
+                        label_y += offset_increment * 0.7
                     else:
-                        # Se siamo già troppo in alto, proviamo a scendere
-                        if label_y > point_y + offset_increment * 2:
-                            label_y = point_y - offset_increment
-                        else:
-                            label_y += offset_increment
+                        label_y -= offset_increment * 1.2
                 
                 attempts += 1
             
             # Garantiamo che l'etichetta non vada fuori dai limiti del grafico
             y_min, y_max = plt.ylim()
-            label_y = max(y_min + offset_increment, min(y_max - offset_increment, label_y))
+            padding = y_range * 0.05  # 5% di padding dal bordo
+            label_y = max(y_min + padding, min(y_max - padding, label_y))
             
             # Aggiungi la posizione calcolata alla lista delle posizioni usate
             used_positions[point_x].append(label_y)
             
-            # Posiziona l'etichetta
-            plt.text(point_x, label_y, f"{perc_change:.1f}%", 
-                     fontsize=12, ha='center', va='center', color=colors[column],
-                     bbox=dict(facecolor='white', edgecolor=colors[column], boxstyle='round,pad=0.3'))
+            # Determina il colore del testo (bianco o nero) in base al colore dello sfondo
+            text_color = 'black'  # Teniamo tutto nero per maggiore leggibilità
             
-            # Se l'etichetta è stata spostata, aggiungi una linea di collegamento
-            if abs(label_y - point_y) > 0.1:
+            # Posiziona l'etichetta con colore di sfondo dello stesso colore della linea ma più chiaro
+            # Per rendere lo sfondo più chiaro ma mantenere l'associazione con la linea
+            bg_color = colors[column]
+            
+            # Aggiungi etichetta percentuale con sfondo colorato
+            plt.text(point_x, label_y, f"{perc_change:.1f}%", 
+                    fontsize=14, ha='center', va='center', color=text_color,
+                    bbox=dict(facecolor='white', edgecolor=colors[column], boxstyle='round,pad=0.4', 
+                            linewidth=2))
+            
+            # Aggiungi la linea di collegamento, più spessa e con freccia
+            if abs(label_y - point_y) > 0.01:
+                # Calcola punto dove la linea tocca l'etichetta (vicino al bordo)
+                # Utilizziamo un approccio più diretto per il collegamento
                 plt.plot([point_x, point_x], [point_y, label_y], 
-                         color=colors[column], linestyle='--', linewidth=1, alpha=0.7)
+                        color=colors[column], linestyle='-', linewidth=1.5, alpha=0.9)
+                
+                # Aggiungiamo una piccola freccia all'estremità della linea di collegamento
+                arrow_size = offset_increment * 0.15
+                if label_y > point_y:  # Freccia verso l'alto
+                    plt.arrow(point_x, point_y + arrow_size, 0, 0.001, 
+                            head_width=0.1, head_length=arrow_size, fc=colors[column], ec=colors[column])
+                else:  # Freccia verso il basso
+                    plt.arrow(point_x, point_y - arrow_size, 0, -0.001, 
+                            head_width=0.1, head_length=arrow_size, fc=colors[column], ec=colors[column])
     
     # Personalizzazione dell'asse X
-    plt.xlabel('Quarter', fontsize=14)
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.xticks(rotation=45)
+    plt.xlabel('Quarter', fontsize=16)
+    plt.legend(loc='upper right', fontsize=14)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.xticks(rotation=45, fontsize=14)
+    plt.yticks(fontsize=14)
     plt.tight_layout()
     
     # Visualizza il grafico
