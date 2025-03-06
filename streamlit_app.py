@@ -2,18 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-
 # Funzione per caricare i dati dal file CSV caricato dall'utente
 def load_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
     return df
-
 # Titolo dell'app
 st.title("Analisi dell'Authority Score o delle Keyword Posizionate")
-
 # Selettore tra "Authority Score" e "Keyword"
 metrica = st.selectbox("Seleziona la metrica", ["Authority Score", "Keyword Posizionate"])
-
 # Carica il file CSV
 uploaded_file = st.file_uploader("Carica il file CSV con i dati", type=["csv"])
 if uploaded_file is not None:
@@ -21,8 +17,9 @@ if uploaded_file is not None:
     df = load_data(uploaded_file)
 
     st.write("Dati caricati:")
-    df = st.data_editor(df)
 
+    # Mostra l'editor interattivo del DataFrame per modifiche dinamiche
+    df = st.data_editor(df)
     # Dropdown per selezionare il cliente e i competitor dalle colonne del CSV
     cliente = st.selectbox("Seleziona il cliente", df.columns[1:], index=0)
 
@@ -40,7 +37,6 @@ if uploaded_file is not None:
         selected_competitors.append(df.columns[3])
     if competitor_3:
         selected_competitors.append(df.columns[4])
-
     # Definisci i colori
     colors = {
         cliente: '#2BB3FF',
@@ -48,48 +44,38 @@ if uploaded_file is not None:
         df.columns[3]: '#FF8D43',
         df.columns[4]: '#AB6CFE'
     }
-
-    # Prepara i dati per il grafico
+    # Prepara i dati per il grafico, includendo solo il cliente e i competitor selezionati
     df.set_index(df.columns[0], inplace=True)
     df_clean = df[[cliente] + selected_competitors].dropna()
-
     # Calcolo della variazione percentuale
     percentage_change = df_clean.pct_change() * 100
-
-    # Definizione delle dimensioni del grafico
-    plt.figure(figsize=(18, 8) if metrica == "Authority Score" else (12, 8))
-    plt.title(f"Andamento dell'{'Authority Score' if metrica == 'Authority Score' else 'Numero di Keyword Posizionate'}", fontsize=16)
-
-    # Imposta il limite superiore dell'asse Y con più spazio
-    y_max = 100 if metrica == "Authority Score" else df_clean.max().max() * 1.2
-    plt.ylim(0, y_max)
-
-    plt.ylabel('Authority Score' if metrica == "Authority Score" else 'Numero di Keyword Posizionate', fontsize=14)
-
-    # Sposta il grafico verso l'alto riducendo il margine superiore
-    plt.subplots_adjust(top=0.85)
-
-    # Plot delle linee
+    # Definizione delle dimensioni del grafico in base alla metrica selezionata
+    if metrica == "Authority Score":
+        plt.figure(figsize=(18, 8))  # Dimensione normale per Authority Score
+        plt.title("Andamento dell'Authority Score", fontsize=16)
+        plt.ylim(0, 100)  # L'Authority Score è tipicamente tra 0 e 100
+        plt.ylabel('Authority Score', fontsize=14)
+    else:
+        plt.figure(figsize=(12, 8))  # Riduce la larghezza e l'altezza per le Keyword
+        plt.title("Andamento del Numero di Keyword Posizionate", fontsize=16)
+        plt.ylim(0, df_clean.max().max() * 1.1)  # Imposta un limite superiore dinamico per le keyword
+        plt.ylabel('Numero di Keyword Posizionate', fontsize=14)
+    # Plot delle linee per ciascuna azienda con i pallini sui punti
     for column in df_clean.columns:
         plt.plot(df_clean.index, df_clean[column], label=column, color=colors[column], 
                  linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6,
-                 marker='o', markersize=8)
-        
-        # Annotazioni con offset verticale maggiore per evitarne la sovrapposizione
+                 marker='o', markersize=8)  # Aggiungi marker per i pallini
+        # Annotazioni con la variazione percentuale (con maggiore visibilità)
         for i in range(1, len(df_clean)):
-            value = df_clean[column].iloc[i]
-            pct_change = percentage_change[column].iloc[i]
-            offset = 8 if i % 2 == 0 else -8  # Alterna le altezze per evitare sovrapposizione
-            plt.text(df_clean.index[i], value + offset, f"{pct_change:.1f}%", 
+            # Modifica la dimensione del font, aggiungi uno sfondo e un bordo per maggiore leggibilità
+            plt.text(df_clean.index[i], df_clean[column].iloc[i], f"{percentage_change[column].iloc[i]:.1f}%", 
                      fontsize=12, ha='center', va='bottom', color=colors[column],
                      bbox=dict(facecolor='white', edgecolor=colors[column], boxstyle='round,pad=0.3'))
-
-    # Personalizzazione asse X
+    # Personalizzazione dell'asse X
     plt.xlabel('Quarter', fontsize=14)
     plt.legend(loc='best')
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-
     # Visualizza il grafico
     st.pyplot(plt)
