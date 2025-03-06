@@ -59,8 +59,15 @@ if uploaded_file is not None:
     # Definizione delle dimensioni del grafico
     plt.figure(figsize=(18, 8) if metrica == "Authority Score" else (12, 8))
     plt.title(f"Andamento dell'{'Authority Score' if metrica == 'Authority Score' else 'Numero di Keyword Posizionate'}", fontsize=16)
-    plt.ylim(0, 100 if metrica == "Authority Score" else df_clean.max().max() * 1.1)
+
+    # Imposta il limite superiore dell'asse Y con più spazio
+    y_max = 100 if metrica == "Authority Score" else df_clean.max().max() * 1.2
+    plt.ylim(0, y_max)
+
     plt.ylabel('Authority Score' if metrica == "Authority Score" else 'Numero di Keyword Posizionate', fontsize=14)
+
+    # Sposta il grafico verso l'alto riducendo il margine superiore
+    plt.subplots_adjust(top=0.85)
 
     # Plot delle linee
     for column in df_clean.columns:
@@ -68,11 +75,11 @@ if uploaded_file is not None:
                  linewidth=3 if column == cliente else 2, alpha=1 if column == cliente else 0.6,
                  marker='o', markersize=8)
         
-        # Annotazioni con offset verticale per evitare sovrapposizioni
+        # Annotazioni con offset verticale maggiore per evitarne la sovrapposizione
         for i in range(1, len(df_clean)):
             value = df_clean[column].iloc[i]
             pct_change = percentage_change[column].iloc[i]
-            offset = 5 if i % 2 == 0 else -5  # Alterna le altezze per evitare sovrapposizione
+            offset = 8 if i % 2 == 0 else -8  # Alterna le altezze per evitare sovrapposizione
             plt.text(df_clean.index[i], value + offset, f"{pct_change:.1f}%", 
                      fontsize=12, ha='center', va='bottom', color=colors[column],
                      bbox=dict(facecolor='white', edgecolor=colors[column], boxstyle='round,pad=0.3'))
